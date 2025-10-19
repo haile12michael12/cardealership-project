@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { TEST_DRIVE_BENEFITS, TIME_SLOTS } from "@/lib/constants";
-import { Vehicle } from "@shared/schema";
+import { Vehicle } from "@/shared/schema";
 import { 
   Form, 
   FormControl, 

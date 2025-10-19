@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Vehicle, InsertVehicle, insertVehicleSchema } from "@shared/schema";
+import { Vehicle, InsertVehicle, insertVehicleSchema } from "@/shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { apiRequest } from "@/lib/queryClient";

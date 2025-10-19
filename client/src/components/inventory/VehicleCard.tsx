@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Vehicle } from "@shared/schema";
+import { Vehicle } from "@/shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
+import StockManagement from "./StockManagement";
 
 interface VehicleCardProps {
   vehicle: Vehicle;
+  userId?: number;
 }
 
-const VehicleCard = ({ vehicle }: VehicleCardProps) => {
+const VehicleCard = ({ vehicle, userId }: VehicleCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   
   const toggleFavorite = (e: React.MouseEvent) => {
@@ -77,13 +79,16 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
             <span className="material-icons text-sm mr-1">palette</span> {vehicle.exteriorColor}
           </span>
         </div>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-2">
           <span className="font-bold text-lg">${vehicle.price.toLocaleString()}</span>
           {vehicle.monthlyPayment && (
             <span className="text-sm text-gray-500">${vehicle.monthlyPayment}/mo*</span>
           )}
         </div>
-        <div className="mt-4 flex space-x-2">
+        <div className="mb-4">
+          <StockManagement vehicle={vehicle} userId={userId} />
+        </div>
+        <div className="flex space-x-2">
           <Link href={`/inventory/${vehicle.id}`}>
             <Button className="bg-primary text-white flex-1 py-2 rounded hover:bg-primary-dark transition">
               View Details

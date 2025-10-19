@@ -7,17 +7,18 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    // Conditionally add cartographer plugin only when needed
-    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
       ? [
-          // We'll handle this differently to avoid top-level await
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
         ]
       : []),
   ],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },

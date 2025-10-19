@@ -1,6 +1,7 @@
 import HeroSection from "@/components/home/HeroSection";
 import QuickSearchBar from "@/components/home/QuickSearchBar";
 import FeaturedVehicles from "@/components/home/FeaturedVehicles";
+import RecommendedVehicles from "@/components/home/RecommendedVehicles";
 import ServiceHighlights from "@/components/home/ServiceHighlights";
 import VirtualShowroom from "@/components/home/VirtualShowroom";
 import FinancingSection from "@/components/home/FinancingSection";
@@ -25,6 +26,7 @@ const Home = () => {
       <HeroSection />
       <QuickSearchBar />
       <FeaturedVehicles />
+      <RecommendedVehicles />
       <ServiceHighlights />
       <VirtualShowroom />
       <FinancingSection />

@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import VehicleDetail from "@/components/vehicle/VehicleDetail";
 import { useQuery } from "@tanstack/react-query";
-import { Vehicle } from "@shared/schema";
+import { Vehicle } from "@/shared/schema";
 import { Helmet } from 'react-helmet';
 
 const VehiclePage = () => {

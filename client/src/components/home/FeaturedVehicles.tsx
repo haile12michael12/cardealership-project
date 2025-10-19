@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Vehicle } from "@shared/schema";
+import { Vehicle } from "@/shared/schema";
 import VehicleCard from "@/components/inventory/VehicleCard";
 import { Skeleton } from "@/components/ui/skeleton";
 

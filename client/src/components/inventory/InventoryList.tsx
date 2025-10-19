@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Vehicle } from "@shared/schema";
+import { Vehicle } from "@/shared/schema";
 import VehicleCard from "./VehicleCard";
 import VehicleFilters from "./VehicleFilters";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const InventoryList = () => {
   const [location] = useLocation();
   const [searchParams, setSearchParams] = useState<URLSearchParams>();
+  // In a real app, this would come from authentication context
+  const userId = 1; // Placeholder user ID
   
   // Parse URL parameters
   useEffect(() => {
@@ -59,7 +61,7 @@ const InventoryList = () => {
           ) : vehicles && vehicles.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {vehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                <VehicleCard key={vehicle.id} vehicle={vehicle} userId={userId} />
               ))}
             </div>
           ) : (

@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Vehicle, User, FinancingApplication, TestDrive, TradeIn } from "@shared/schema";
+import { Vehicle, User, FinancingApplication, TestDrive, TradeIn } from "@/shared/schema";
 import InventoryManager from "./InventoryManager";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   Settings,
   Bell,
+  TrendingUp,
 } from "lucide-react";
 
 const AdminPanel = () => {
@@ -89,6 +90,14 @@ const AdminPanel = () => {
               >
                 <Users className="mr-2 h-4 w-4" />
                 Customers
+              </Button>
+              <Button 
+                variant={activeTab === "analytics" ? "default" : "ghost"} 
+                className="w-full justify-start"
+                onClick={() => setActiveTab("analytics")}
+              >
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Analytics
               </Button>
               <Button 
                 variant={activeTab === "reports" ? "default" : "ghost"} 
@@ -189,11 +198,12 @@ const AdminPanel = () => {
           
           {/* Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid grid-cols-4 w-full lg:w-2/3">
+            <TabsList className="grid grid-cols-5 w-full lg:w-2/3">
               <TabsTrigger value="inventory">Inventory</TabsTrigger>
               <TabsTrigger value="applications">Applications</TabsTrigger>
               <TabsTrigger value="testdrives">Test Drives</TabsTrigger>
               <TabsTrigger value="customers">Customers</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
             
             <TabsContent value="inventory" className="space-y-4">
@@ -243,7 +253,7 @@ const AdminPanel = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                {new Date(app.createdAt).toLocaleDateString()}
+                                {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <Button variant="outline" size="sm">View</Button>
@@ -297,7 +307,7 @@ const AdminPanel = () => {
                                   {vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : `Vehicle #${drive.vehicleId}`}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  {new Date(drive.date).toLocaleDateString()}
+                                  {drive.date ? new Date(drive.date).toLocaleDateString() : 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">{drive.time}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -339,6 +349,51 @@ const AdminPanel = () => {
                 <CardContent>
                   <p className="text-center py-12 text-gray-500">
                     Customer management functionality is currently under development.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="analytics">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Analytics Dashboard</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="py-8 text-center">
+                    <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      Analytics dashboard is available as a separate page
+                    </p>
+                    <Button asChild>
+                      <a href="/admin/analytics">View Analytics Dashboard</a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="reports">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reports</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center py-12 text-gray-500">
+                    Report generation functionality is currently under development.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="settings">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center py-12 text-gray-500">
+                    System settings and configurations will be managed here.
                   </p>
                 </CardContent>
               </Card>

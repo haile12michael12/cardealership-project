@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import { 
   VEHICLE_MAKES, 
   BODY_TYPES, 
-  PRICE_RANGES 
+  PRICE_RANGES,
+  VEHICLE_YEARS
 } from "@/lib/constants";
 import { 
   Card, 
@@ -23,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Search, FilterX } from "lucide-react";
+import { Search, FilterX, ChevronDown, ChevronUp } from "lucide-react";
 
 const VehicleFilters = () => {
   const [location, setLocation] = useLocation();
@@ -33,11 +34,17 @@ const VehicleFilters = () => {
   const [make, setMake] = useState<string>(searchParams.get("make") || "");
   const [model, setModel] = useState<string>(searchParams.get("model") || "");
   const [bodyType, setBodyType] = useState<string>(searchParams.get("bodyType") || "");
+  const [transmission, setTransmission] = useState<string>(searchParams.get("transmission") || "");
   const [minPrice, setMinPrice] = useState<string>(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState<string>(searchParams.get("maxPrice") || "");
-  const [yearMin, setYearMin] = useState<string>(searchParams.get("yearMin") || "");
-  const [yearMax, setYearMax] = useState<string>(searchParams.get("yearMax") || "");
+  const [minYear, setMinYear] = useState<string>(searchParams.get("minYear") || "");
+  const [maxYear, setMaxYear] = useState<string>(searchParams.get("maxYear") || "");
+  const [minMileage, setMinMileage] = useState<string>(searchParams.get("minMileage") || "");
+  const [maxMileage, setMaxMileage] = useState<string>(searchParams.get("maxMileage") || "");
   const [fuelTypes, setFuelTypes] = useState<string[]>([]);
+  
+  // Advanced filters visibility
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // Parse URL parameters on location change
   useEffect(() => {
@@ -48,10 +55,13 @@ const VehicleFilters = () => {
     setMake(params.get("make") || "");
     setModel(params.get("model") || "");
     setBodyType(params.get("bodyType") || "");
+    setTransmission(params.get("transmission") || "");
     setMinPrice(params.get("minPrice") || "");
     setMaxPrice(params.get("maxPrice") || "");
-    setYearMin(params.get("yearMin") || "");
-    setYearMax(params.get("yearMax") || "");
+    setMinYear(params.get("minYear") || "");
+    setMaxYear(params.get("maxYear") || "");
+    setMinMileage(params.get("minMileage") || "");
+    setMaxMileage(params.get("maxMileage") || "");
     
     // Parse fuel types from URL
     const fuelParam = params.get("fuelType");
@@ -70,10 +80,13 @@ const VehicleFilters = () => {
     if (make) params.append("make", make);
     if (model) params.append("model", model);
     if (bodyType) params.append("bodyType", bodyType);
+    if (transmission) params.append("transmission", transmission);
     if (minPrice) params.append("minPrice", minPrice);
     if (maxPrice) params.append("maxPrice", maxPrice);
-    if (yearMin) params.append("yearMin", yearMin);
-    if (yearMax) params.append("yearMax", yearMax);
+    if (minYear) params.append("minYear", minYear);
+    if (maxYear) params.append("maxYear", maxYear);
+    if (minMileage) params.append("minMileage", minMileage);
+    if (maxMileage) params.append("maxMileage", maxMileage);
     
     // Append fuel types if selected
     if (fuelTypes.length > 0) {
@@ -87,10 +100,13 @@ const VehicleFilters = () => {
     setMake("");
     setModel("");
     setBodyType("");
+    setTransmission("");
     setMinPrice("");
     setMaxPrice("");
-    setYearMin("");
-    setYearMax("");
+    setMinYear("");
+    setMaxYear("");
+    setMinMileage("");
+    setMaxMileage("");
     setFuelTypes([]);
     setLocation("/inventory");
   };
@@ -114,6 +130,19 @@ const VehicleFilters = () => {
     const [min, max] = range.split("-");
     setMinPrice(min);
     setMaxPrice(max || "");
+  };
+  
+  // Extract year range values
+  const handleYearRangeChange = (range: string) => {
+    if (range === "Any Year") {
+      setMinYear("");
+      setMaxYear("");
+      return;
+    }
+    
+    const [min, max] = range.split("-");
+    setMinYear(min);
+    setMaxYear(max || "");
   };
   
   return (
@@ -199,62 +228,122 @@ const VehicleFilters = () => {
           </div>
           
           <div className="space-y-2">
-            <Label>Year Range</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Input 
-                type="number" 
-                placeholder="Min" 
-                value={yearMin} 
-                onChange={(e) => setYearMin(e.target.value)} 
-                min={1990} 
-                max={new Date().getFullYear() + 1}
-              />
-              <Input 
-                type="number" 
-                placeholder="Max" 
-                value={yearMax} 
-                onChange={(e) => setYearMax(e.target.value)} 
-                min={1990} 
-                max={new Date().getFullYear() + 1}
-              />
-            </div>
+            <Label htmlFor="yearRange">Year Range</Label>
+            <Select 
+              value={minYear && maxYear ? `${minYear}-${maxYear}` : minYear ? `${minYear}-` : "Any Year"}
+              onValueChange={handleYearRangeChange}
+            >
+              <SelectTrigger id="yearRange">
+                <SelectValue placeholder="Any Year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Any Year">Any Year</SelectItem>
+                {VEHICLE_YEARS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="space-y-2">
-            <Label>Fuel Type</Label>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="gasoline" 
-                  checked={fuelTypes.includes("Gasoline")}
-                  onCheckedChange={() => handleFuelTypeChange("Gasoline")}
-                />
-                <label htmlFor="gasoline" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Gasoline
-                </label>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            className="w-full justify-between p-0 h-auto py-2 text-left"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            <span>Advanced Filters</span>
+            {showAdvancedFilters ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+          
+          {showAdvancedFilters && (
+            <div className="space-y-4 pt-2 border-t">
+              <div className="space-y-2">
+                <Label>Transmission</Label>
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="automatic" 
+                      checked={transmission === "Automatic"}
+                      onCheckedChange={() => setTransmission(transmission === "Automatic" ? "" : "Automatic")}
+                    />
+                    <label htmlFor="automatic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Automatic
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="manual" 
+                      checked={transmission === "Manual"}
+                      onCheckedChange={() => setTransmission(transmission === "Manual" ? "" : "Manual")}
+                    />
+                    <label htmlFor="manual" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Manual
+                    </label>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="hybrid" 
-                  checked={fuelTypes.includes("Hybrid")}
-                  onCheckedChange={() => handleFuelTypeChange("Hybrid")}
-                />
-                <label htmlFor="hybrid" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Hybrid
-                </label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="mileageRange">Mileage Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    type="number" 
+                    placeholder="Min" 
+                    value={minMileage} 
+                    onChange={(e) => setMinMileage(e.target.value)} 
+                  />
+                  <Input 
+                    type="number" 
+                    placeholder="Max" 
+                    value={maxMileage} 
+                    onChange={(e) => setMaxMileage(e.target.value)} 
+                  />
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="electric" 
-                  checked={fuelTypes.includes("Electric")}
-                  onCheckedChange={() => handleFuelTypeChange("Electric")}
-                />
-                <label htmlFor="electric" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Electric
-                </label>
+              
+              <div className="space-y-2">
+                <Label>Fuel Type</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="gasoline" 
+                      checked={fuelTypes.includes("Gasoline")}
+                      onCheckedChange={() => handleFuelTypeChange("Gasoline")}
+                    />
+                    <label htmlFor="gasoline" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Gasoline
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="hybrid" 
+                      checked={fuelTypes.includes("Hybrid")}
+                      onCheckedChange={() => handleFuelTypeChange("Hybrid")}
+                    />
+                    <label htmlFor="hybrid" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Hybrid
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="electric" 
+                      checked={fuelTypes.includes("Electric")}
+                      onCheckedChange={() => handleFuelTypeChange("Electric")}
+                    />
+                    <label htmlFor="electric" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Electric
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           <Button type="submit" className="w-full bg-primary hover:bg-primary-dark">
             <Search className="h-4 w-4 mr-2" />
