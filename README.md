@@ -24,16 +24,20 @@ This is a car dealership application built with the MERN (MongoDB, Express, Reac
 │   ├── package.json        # Server dependencies
 │   └── ...
 ├── shared/                 # Shared code between client and server
-│   └── schema.ts           # Data schemas
+│   ├── src/types           # Domain and API schemas (Zod)
+│   └── src/index.ts        # Shared exports
+├── tsconfig.base.json      # Base TS config (path aliases)
+├── prettier.config.cjs     # Prettier config
+├── docker-compose.yml      # Local dev/prod docker compose
 ├── package.json            # Root package.json with workspace scripts
 └── ...
 ```
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies for all workspaces:
    ```bash
-   npm run install:all
+   npm install
    ```
 
 2. Start the development server:
@@ -41,22 +45,33 @@ This is a car dealership application built with the MERN (MongoDB, Express, Reac
    npm run dev
    ```
 
-This will start both the client and server in development mode.
+This starts both the client and server in development mode with hot reload.
 
 ## Available Scripts
 
 - `npm run dev` - Start both client and server in development mode
 - `npm run dev:client` - Start only the client
 - `npm run dev:server` - Start only the server
-- `npm run build` - Build both client and server
+- `npm run build` - Build client and server
 - `npm run start` - Start the production server
-- `npm run install:all` - Install dependencies for all workspaces
+
+### Environment Variables
+- Server sample: `server/env.example`
+- Client sample: `client/env.example`
+
+Copy and rename them to `.env` in the same folders (values required as needed).
+
+### Docker
+Build and run the full stack with Postgres:
+```bash
+docker compose up --build
+```
 
 ## Technologies Used
 
 - **Frontend**: React, TypeScript, Tailwind CSS, Vite
 - **Backend**: Node.js, Express, TypeScript
-- **Database**: MongoDB (planned)
+- **Database**: Postgres via Drizzle ORM (current), MongoDB compatible structure
 - **UI Components**: Radix UI, Tailwind CSS
 - **State Management**: React Query
 - **Form Handling**: React Hook Form, Zod

@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cardealership
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+    environment:
+      NODE_ENV: production
+      SERVER_PORT: 8080
+      DATABASE_URL: postgres://user:password@db:5432/cardealership
+      SESSION_SECRET: replace_me
+      ALLOW_ORIGIN: http://localhost:5173
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: ./client
+    ports:
+      - "5173:80"
+    environment:
+      VITE_SERVER_URL: http://localhost:8080
+    depends_on:
+      - server
+
+volumes:
+  db_data:
+
+

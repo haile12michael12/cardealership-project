@@ -12,7 +12,7 @@ import Vehicle from "@/pages/vehicle";
 import Financing from "@/pages/financing";
 import TestDrive from "@/pages/test-drive";
 import VirtualShowroom from "@/pages/virtual-showroom";
-import Admin from "@/pages/admin";
+import Admin from "@/components/admin/admin";
 import VinDecoderPage from "@/pages/vin-decoder";
 
 function Router() {
