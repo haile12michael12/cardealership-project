@@ -6,6 +6,7 @@ import ServiceHighlights from "@/components/home/ServiceHighlights";
 import VirtualShowroom from "@/components/home/VirtualShowroom";
 import FinancingSection from "@/components/home/FinancingSection";
 import TestDriveSection from "@/components/home/TestDriveSection";
+import VirtualTestDrive from "@/components/home/VirtualTestDrive";
 import AIChatFeature from "@/components/home/AIChatFeature";
 import TradeInEstimator from "@/components/home/TradeInEstimator";
 import Testimonials from "@/components/home/Testimonials";
@@ -30,6 +31,7 @@ const Home = () => {
       <ServiceHighlights />
       <VirtualShowroom />
       <FinancingSection />
+      <VirtualTestDrive />
       <TestDriveSection />
       <AIChatFeature />
       <TradeInEstimator />

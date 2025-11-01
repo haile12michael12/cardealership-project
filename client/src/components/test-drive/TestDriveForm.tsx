@@ -25,18 +25,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarIcon, Car, CheckCircle2, Clock } from "lucide-react";
+import { CalendarIcon, Car, CheckCircle2, Clock, MapPin, Bell, Share2, GitCompare } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import VehicleComparison from "@/components/home/VehicleComparison";
 
 // Calculate tomorrow's date as the minimum date for the date picker
 const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
 
-// Test drive form schema
-const testDriveFormSchema = z.object({
+// Extended test drive form schema
+const extendedTestDriveFormSchema = z.object({
   vehicleId: z.string().min(1, "Please select a vehicle"),
   date: z.date({
     required_error: "Please select a date",
@@ -46,9 +50,12 @@ const testDriveFormSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  location: z.string().min(1, "Please select a location"),
+  reminders: z.boolean().optional(),
+  compareWith: z.string().optional()
 });
 
-type TestDriveFormValues = z.infer<typeof testDriveFormSchema>;
+type ExtendedTestDriveFormValues = z.infer<typeof extendedTestDriveFormSchema>;
 
 interface TestDriveFormProps {
   vehicleId?: string;
@@ -58,6 +65,8 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedVehicles, setSelectedVehicles] = useState<string[]>(vehicleId ? [vehicleId] : []);
   
   // Fetch vehicles for the dropdown
   const { data: vehicles } = useQuery<Vehicle[]>({
@@ -70,8 +79,8 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
     enabled: !!vehicleId,
   });
 
-  const form = useForm<TestDriveFormValues>({
-    resolver: zodResolver(testDriveFormSchema),
+  const form = useForm<ExtendedTestDriveFormValues>({
+    resolver: zodResolver(extendedTestDriveFormSchema),
     defaultValues: {
       vehicleId: vehicleId || "",
       firstName: "",
@@ -79,6 +88,9 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
       email: "",
       phone: "",
       time: "",
+      location: "Main Dealership - 123 Auto Drive",
+      reminders: false,
+      compareWith: ""
     }
   });
 
@@ -86,11 +98,12 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
   useEffect(() => {
     if (vehicleId) {
       form.setValue("vehicleId", vehicleId);
+      setSelectedVehicles([vehicleId]);
     }
   }, [vehicleId, form]);
 
   const testDriveMutation = useMutation({
-    mutationFn: async (data: TestDriveFormValues) => {
+    mutationFn: (data: ExtendedTestDriveFormValues) => {
       // Convert date to ISO string and vehicleId to number
       const formData = {
         ...data,
@@ -107,7 +120,7 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
       });
       setIsSubmitted(true);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "There was a problem scheduling your test drive.",
@@ -119,9 +132,42 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
     }
   });
 
-  const onSubmit = (data: TestDriveFormValues) => {
+  const onSubmit = (data: ExtendedTestDriveFormValues) => {
     setIsSubmitting(true);
     testDriveMutation.mutate(data);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Test Drive Appointment',
+        text: `I've scheduled a test drive for a ${form.getValues("vehicleId") ? vehicles?.find(v => v.id.toString() === form.getValues("vehicleId"))?.make + " " + vehicles?.find(v => v.id.toString() === form.getValues("vehicleId"))?.model : "vehicle"} on ${form.getValues("date") ? format(form.getValues("date"), "PPP") : ""} at ${form.getValues("time")}.`,
+      }).catch(console.error);
+    } else {
+      toast({
+        title: "Share",
+        description: "Copy this link to share your appointment details",
+      });
+    }
+  };
+
+  const handleVehicleSelect = (vehicleId: string) => {
+    if (selectedVehicles.length < 2) {
+      setSelectedVehicles([...selectedVehicles, vehicleId]);
+      if (selectedVehicles.length === 0) {
+        form.setValue("vehicleId", vehicleId);
+      }
+    }
+  };
+
+  const handleRemoveVehicle = (vehicleId: string) => {
+    setSelectedVehicles(selectedVehicles.filter(id => id !== vehicleId));
+    if (form.getValues("vehicleId") === vehicleId) {
+      form.setValue("vehicleId", "");
+    }
+    if (form.getValues("compareWith") === vehicleId) {
+      form.setValue("compareWith", "");
+    }
   };
 
   if (isSubmitted) {
@@ -148,15 +194,25 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
               <br />
               Time: {form.getValues("time")}
               <br />
-              Location: AutoDrive Dealership, 123 Dealership Way
+              Location: {form.getValues("location")}
             </p>
           </div>
-          <Button 
-            className="w-full bg-primary hover:bg-primary-dark"
-            onClick={() => window.location.href = "/inventory"}
-          >
-            Browse More Vehicles
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+            <Button 
+              className="w-full sm:w-auto bg-primary hover:bg-primary-dark"
+              onClick={() => window.location.href = "/inventory"}
+            >
+              Browse More Vehicles
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={handleShare}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Appointment
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -197,6 +253,46 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
                 </FormItem>
               )}
             />
+            
+            {/* Compare vehicle option */}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="compare-mode" 
+                checked={compareMode}
+                onCheckedChange={(checked) => setCompareMode(checked as boolean)}
+              />
+              <Label htmlFor="compare-mode" className="flex items-center cursor-pointer">
+                <GitCompare className="h-4 w-4 mr-2" />
+                Compare with another vehicle
+              </Label>
+            </div>
+            
+            {compareMode && (
+              <FormField
+                control={form.control}
+                name="compareWith"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compare With</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vehicle to compare" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {vehicles?.filter(v => v.id.toString() !== form.watch("vehicleId")).map((vehicle) => (
+                          <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                            {vehicle.year} {vehicle.make} {vehicle.model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -268,6 +364,38 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
               />
             </div>
             
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Main Dealership - 123 Auto Drive">
+                        Main Dealership - 123 Auto Drive
+                      </SelectItem>
+                      <SelectItem value="North Branch - 456 Car Lane">
+                        North Branch - 456 Car Lane
+                      </SelectItem>
+                      <SelectItem value="Westside Location - 789 Motor Way">
+                        Westside Location - 789 Motor Way
+                      </SelectItem>
+                      <SelectItem value="Downtown Showroom - 321 Vehicle St">
+                        Downtown Showroom - 321 Vehicle St
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -328,6 +456,27 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
               />
             </div>
             
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <Label htmlFor="reminders">Send me reminders</Label>
+              </div>
+              <FormField
+                control={form.control}
+                name="reminders"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <div className="pt-2">
               <Button 
                 type="submit" 
@@ -346,6 +495,16 @@ const TestDriveForm = ({ vehicleId }: TestDriveFormProps) => {
             </div>
           </form>
         </Form>
+        
+        {/* Vehicle Comparison Section */}
+        {vehicles && (
+          <VehicleComparison
+            vehicles={vehicles}
+            selectedVehicles={selectedVehicles}
+            onVehicleSelect={handleVehicleSelect}
+            onRemoveVehicle={handleRemoveVehicle}
+          />
+        )}
       </CardContent>
     </Card>
   );

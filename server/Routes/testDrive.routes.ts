@@ -7,5 +7,6 @@ const router = Router();
 router.post("/", TestDriveController.createTestDrive);
 router.get("/", TestDriveController.getAllTestDrives);
 router.get("/:id", TestDriveController.getTestDriveById);
+router.get("/availability", TestDriveController.checkAvailability);
 
 export default router;
